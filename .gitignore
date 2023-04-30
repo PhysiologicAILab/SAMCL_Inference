@@ -6,8 +6,16 @@ __pycache__/
 # C extensions
 *.so
 
+# Checkpoint:
+ckpt**/**
+
+# Data folders
+data**/**
+out**/**
+
 # Distribution / packaging
 .Python
+.vscode**/**
 build/
 develop-eggs/
 dist/
