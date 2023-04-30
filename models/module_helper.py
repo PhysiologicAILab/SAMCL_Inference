@@ -38,13 +38,13 @@ class ModuleHelper(object):
                 nn.ReLU()
             )
         elif bn_type == 'syncbn':
-            from seg.lib.extensions.syncbn.module import BatchNorm2d
+            from lib.extensions.syncbn.module import BatchNorm2d
             return nn.Sequential(
                 BatchNorm2d(num_features, **kwargs),
                 nn.ReLU()
             )
         elif bn_type == 'sn':
-            from seg.lib.extensions.switchablenorms.switchable_norm import SwitchNorm2d
+            from lib.extensions.switchablenorms.switchable_norm import SwitchNorm2d
             return nn.Sequential(
                 SwitchNorm2d(num_features, **kwargs),
                 nn.ReLU()
@@ -61,10 +61,10 @@ class ModuleHelper(object):
             torch_ver = torch.__version__[:3]
             # Log.info('Pytorch Version: {}'.format(torch_ver))
             if torch_ver == '0.4':
-                from seg.lib.extensions.inplace_abn.bn import InPlaceABNSync
+                from lib.extensions.inplace_abn.bn import InPlaceABNSync
                 return InPlaceABNSync(num_features, **kwargs)
             elif torch_ver in ('1.0', '1.1'):
-                from seg.lib.extensions.inplace_abn_1.bn import InPlaceABNSync
+                from lib.extensions.inplace_abn_1.bn import InPlaceABNSync
                 return InPlaceABNSync(num_features, **kwargs)
             elif torch_ver == '1.2':
                 from inplace_abn import InPlaceABNSync
@@ -83,11 +83,11 @@ class ModuleHelper(object):
             return nn.SyncBatchNorm
 
         elif bn_type == 'syncbn':
-            from seg.lib.extensions.syncbn.module import BatchNorm2d
+            from lib.extensions.syncbn.module import BatchNorm2d
             return BatchNorm2d
 
         elif bn_type == 'sn':
-            from seg.lib.extensions.switchablenorms.switchable_norm import SwitchNorm2d
+            from lib.extensions.switchablenorms.switchable_norm import SwitchNorm2d
             return SwitchNorm2d
 
         elif bn_type == 'gn':
@@ -96,14 +96,14 @@ class ModuleHelper(object):
         elif bn_type == 'inplace_abn':
             torch_ver = torch.__version__[:3]
             if torch_ver == '0.4':
-                from seg.lib.extensions.inplace_abn.bn import InPlaceABNSync
+                from lib.extensions.inplace_abn.bn import InPlaceABNSync
                 if ret_cls:
                     return InPlaceABNSync
 
                 return functools.partial(InPlaceABNSync, activation='none')
 
             elif torch_ver in ('1.0', '1.1'):
-                from seg.lib.extensions.inplace_abn_1.bn import InPlaceABNSync
+                from lib.extensions.inplace_abn_1.bn import InPlaceABNSync
                 if ret_cls:
                     return InPlaceABNSync
 
