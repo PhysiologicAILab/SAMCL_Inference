@@ -1,6 +1,6 @@
 {
     "data": {
-      "input_size": [320, 256],
+      "input_size": [640, 512],
       "num_channels": 1,
       "num_classes": 6,
       "image_tool": "npy",
@@ -10,7 +10,7 @@
       "norm_mode": 2
     },
     "checkpoints": {
-      "checkpoints_name": "attention_unet_samcl_256",
+      "checkpoints_name": "attention_unet_samcl",
       "checkpoints_dir": "./ckpt"
     },
     "logging": {

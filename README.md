@@ -1,5 +1,8 @@
-# **SAMCL Inference**
+# **SAMCLInference**
 This code supports only the inference with pretrained SAM-CL model. Please visit [this repository](https://github.com/PhysiologicAILab/SAM-CL) for training code.
+
+### **Checkpoint Download**
+After cloning the repository, place the [checkpoint downloaded from this link](https://drive.google.com/drive/folders/1durAP--yz51W9WAKdTZ7XgIUpSngKrxA?usp=share_link) under *"SAMCL_Inference/ckpt"* folder
 
 ### **Usage Instructions:**
 
@@ -8,14 +11,14 @@ This code supports only the inference with pretrained SAM-CL model. Please visit
 python inference.py --datadir *<path containing .bin raw thermal file>* --outdir *<path to store segmentation masks and visualization images>* --config *<config file with input parameters>* [--gpu *gpu_number*]
 ```
 
-#### Illustrative terminal commands to run inference on raw images with dimension 640x512
+#### Illustrative terminal commands to run inference on raw images
 **Inference with CPU:**
 ```bash
-python inference.py --datadir data/test/ --outdir ./out/test --config configs/AU_SAMCL_512.json
+python inference.py --datadir data/test/ --outdir ./out/test --config configs/AU_SAMCL.json
 ```
 **Inference with single GPU:**
 ```bash
-python inference.py --datadir data/test/ --outdir ./out/test --config configs/AU_SAMCL_512.json --gpu 0
+python inference.py --datadir data/test/ --outdir ./out/test --config configs/AU_SAMCL.json --gpu 0
 ```
 #### **Output**
 There are two outcomes that code generates in the specified *outdir* path:
