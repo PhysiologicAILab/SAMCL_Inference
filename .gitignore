@@ -17,6 +17,8 @@ out**/**
 .Python
 .vscode**/**
 build/
+lib/
+lib64/
 develop-eggs/
 dist/
 downloads/

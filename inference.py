@@ -1,7 +1,5 @@
 import time
-import json
 import os
-import copy
 import torch
 import torch.nn as nn
 from skimage.transform import resize
@@ -9,11 +7,12 @@ import numpy as np
 import argparse
 import cv2
 
-from utils.module_runner import ModuleRunner
-from models.model_manager import ModelManager
+from collections import OrderedDict
 import utils.transforms as trans
 from utils.configer import Configer
+from utils.logger import Logger as Log
 
+from models.attention_unet import AttU_Net
 from matplotlib.figure import Figure
 from matplotlib.backends.backend_agg import FigureCanvasAgg as FigureCanvas_Image
 
@@ -35,17 +34,102 @@ class ThermSeg():
         self.img_transform = trans.Compose([
             trans.ToTensor(),
             trans.NormalizeThermal(norm_mode=self.configer.get('normalize', 'norm_mode')), ])
-        size_mode = self.configer.get('test', 'data_transformer')['size_mode']
-        self.is_stack = size_mode != 'diverse_size'
+
+        self.img_width, self.img_height = self.configer.get('data', 'input_size')
+
+        if self.configer.get('gpu') is None:
+            self.device = torch.device('cpu')
+        else:
+            if torch.cuda.is_available():
+                self.device = torch.device('cuda')
+            else:
+                self.device = torch.device('cpu')
+
 
     def load_model(self, configer): 
-        self.module_runner = ModuleRunner(configer)
-        self.model_manager = ModelManager(configer)
-        self.seg_net = self.model_manager.semantic_segmentor()
-        self.seg_net = self.module_runner.load_net(self.seg_net)
-        self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-        self.mode = configer.get('data', 'input_mode')
+        self.seg_net = AttU_Net(configer)
+        self.seg_net = self.seg_net.to(self.device)
+        self.seg_net.float()
+
+        Log.info('Loading checkpoint from {}...'.format(self.configer.get('network', 'resume')))
+        resume_dict = torch.load(self.configer.get('network', 'resume'), map_location=lambda storage, loc: storage)
+        if 'state_dict' in resume_dict:
+            checkpoint_dict = resume_dict['state_dict']
+
+        elif 'model' in resume_dict:
+            checkpoint_dict = resume_dict['model']
+
+        elif isinstance(resume_dict, OrderedDict):
+            checkpoint_dict = resume_dict
+
+        else:
+            raise RuntimeError(
+                'No state_dict found in checkpoint file {}'.format(self.configer.get('network', 'resume')))
+
+        if list(checkpoint_dict.keys())[0].startswith('module.'):
+            checkpoint_dict = {k[7:]: v for k, v in checkpoint_dict.items()}
+
+        # load state_dict
+        if hasattr(self.seg_net, 'module'):
+            self.load_state_dict(self.seg_net.module, checkpoint_dict, self.configer.get('network', 'resume_strict'))
+        else:
+            self.load_state_dict(self.seg_net, checkpoint_dict, self.configer.get('network', 'resume_strict'))
+
         self.seg_net.eval()
+
+        # load weights to device
+        dummy_input_img = torch.ones((1, 1, self.img_width, self.img_height))
+        dummy_input_img = dummy_input_img.to(self.device)
+        logits = self.seg_net.forward(dummy_input_img)
+
+
+    @staticmethod
+    def load_state_dict(module, state_dict, strict=False):
+        """Load state_dict to a module.
+        This method is modified from :meth:`torch.nn.Module.load_state_dict`.
+        Default value for ``strict`` is set to ``False`` and the message for
+        param mismatch will be shown even if strict is False.
+        Args:
+            module (Module): Module that receives the state_dict.
+            state_dict (OrderedDict): Weights.
+            strict (bool): whether to strictly enforce that the keys
+                in :attr:`state_dict` match the keys returned by this module's
+                :meth:`~torch.nn.Module.state_dict` function. Default: ``False``.
+        """
+        unexpected_keys = []
+        own_state = module.state_dict()
+        for name, param in state_dict.items():
+            if name not in own_state:
+                unexpected_keys.append(name)
+                continue
+            if isinstance(param, torch.nn.Parameter):
+                # backwards compatibility for serialized parameters
+                param = param.data
+
+            try:
+                own_state[name].copy_(param)
+            except Exception:
+                Log.warn('While copying the parameter named {}, '
+                                   'whose dimensions in the model are {} and '
+                                   'whose dimensions in the checkpoint are {}.'
+                                   .format(name, own_state[name].size(),
+                                           param.size()))
+                
+        missing_keys = set(own_state.keys()) - set(state_dict.keys())
+
+        err_msg = []
+        if unexpected_keys:
+            err_msg.append('unexpected key in source state_dict: {}\n'.format(', '.join(unexpected_keys)))
+        if missing_keys:
+            # we comment this to fine-tune the models with some missing keys.
+            err_msg.append('missing keys in source state_dict: {}\n'.format(', '.join(missing_keys)))
+        err_msg = '\n'.join(err_msg)
+        if err_msg:
+            if strict:
+                raise RuntimeError(err_msg)
+            else:
+                Log.warn(err_msg)
+
 
     def delete_model(self):
         if self.seg_net != None:
@@ -58,8 +142,9 @@ class ThermSeg():
         with torch.no_grad():
             input_img = self.img_transform(input_img)
             input_img = input_img.unsqueeze(0)
-            input_img = self.module_runner.to_device(input_img)
-
+            # input_img = self.module_runner.to_device(input_img)
+            input_img = input_img.to(self.device)
+            
             logits = self.seg_net.forward(input_img)
             if self.configer.get('gpu') is not None:
                 torch.cuda.synchronize()
@@ -73,9 +158,6 @@ class ThermSeg():
 
 
 def main(args_parser):
-
-    # args_parser.config = 'configs/AU_GCL_RMI_Occ_High.json'
-
     configer = Configer(args_parser=args_parser)
     ckpt_root = configer.get('checkpoints', 'checkpoints_dir')
     ckpt_name = configer.get('checkpoints', 'checkpoints_name')
@@ -83,9 +165,6 @@ def main(args_parser):
     thermal_file_ext = "bin"
     segObj = ThermSeg(configer)
     segObj.load_model(configer)
-
-    img_width = 640
-    img_height = 512
 
     datadir = args_parser.datadir
     fp_list = os.listdir(datadir)
@@ -96,18 +175,18 @@ def main(args_parser):
     if not os.path.exists(outdir_vis):
         os.makedirs(outdir_vis)
 
-
     for fp in fp_list:
         fpath = os.path.join(datadir, fp)
         fp_ext = os.path.basename(fpath).split(".")[-1]
         if thermal_file_ext in fp_ext:
-            print("Processing:", fp)
+            Log.info('Processing: {}'.format(fp))
             try:
-                thermal_matrix = np.fromfile(fpath, dtype = np.uint16, count = img_width * img_height).reshape(img_height, img_width)
+                thermal_matrix = np.fromfile(
+                    fpath, dtype=np.uint16, count=segObj.img_width * segObj.img_height).reshape(segObj.img_height, segObj.img_width)
                 thermal_matrix = np.round(thermal_matrix  * 0.04 - 273.15, 4)    
                 pred_seg_mask, time_taken = segObj.run_inference(thermal_matrix)
             except Exception as e:
-                print("Error:", e)
+                Log.error('Error: {}'.format(e))
 
             fp_mask = os.path.join(outdir, os.path.basename(fpath).replace(".bin", ".png"))
             cv2.imwrite(fp_mask, pred_seg_mask)
@@ -125,7 +204,7 @@ def main(args_parser):
             canvas.draw()
             canvas.print_jpg(fp_mask_vis)
 
-            print("Done")
+            Log.info('Done, inference time = {}.'.format(time_taken))
 
 
 def str2bool(v):
