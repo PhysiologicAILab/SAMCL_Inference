@@ -1,4 +1,4 @@
-# **SAMCLInference**
+# **SAMCL Inference**
 This code supports only the inference with pretrained SAM-CL model. Please visit [this repository](https://github.com/PhysiologicAILab/SAM-CL) for training code.
 
 ### **Checkpoint Download**
