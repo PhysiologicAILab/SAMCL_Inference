@@ -1,7 +1,15 @@
 # **SAMCL Inference**
 This code supports only the inference with pretrained SAM-CL model. Please visit [this repository](https://github.com/PhysiologicAILab/SAM-CL) for training code.
 
-### **Checkpoint Download**
+### **Installation**
+* Clone or download the repo.
+* Activate python virtual environment (venv or conda). Create virtual environment if it not available.
+* Install the required Python packages with following command:
+```bash
+pip install -r requirements.txt
+```
+
+#### **Checkpoint Download**
 After cloning the repository, place the [checkpoint downloaded from this link](https://drive.google.com/drive/folders/1durAP--yz51W9WAKdTZ7XgIUpSngKrxA?usp=share_link) under *"SAMCL_Inference/ckpt"* folder
 
 ### **Usage Instructions:**
