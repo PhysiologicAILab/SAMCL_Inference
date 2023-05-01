@@ -183,7 +183,7 @@ def main(args_parser):
             try:
                 thermal_matrix = np.fromfile(
                     fpath, dtype=np.uint16, count=segObj.img_width * segObj.img_height).reshape(segObj.img_height, segObj.img_width)
-                thermal_matrix = np.round(thermal_matrix  * 0.04 - 273.15, 4)    
+                thermal_matrix = thermal_matrix  * 0.04 - 273.15
                 pred_seg_mask, time_taken = segObj.run_inference(thermal_matrix)
             except Exception as e:
                 Log.error('Error: {}'.format(e))
