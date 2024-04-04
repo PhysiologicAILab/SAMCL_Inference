@@ -38,7 +38,7 @@ There are two outcomes that code generates in the specified *outdir* path:
     2 - mouth
     3 - eyes
     4 - eyebrows
-    5 - nose.
+    5 - nose
    ```
 2. **JPG files** (in a sub-folder with name "vis") showing overlaid visualization as the image below. These cannot be used for further processing.
 
