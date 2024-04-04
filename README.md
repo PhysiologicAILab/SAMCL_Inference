@@ -41,7 +41,8 @@ There are two outcomes that code generates in the specified *outdir* path:
    
 3. **JPG files** (in a sub-folder with name "vis") showing overlaid visualization as the image below. These cannot be used for further processing.
 
-#### **Citation**
+#### :scroll: Citation
+```
 @inproceedings{Joshi_2022_BMVC,
     author={Jitesh N Joshi and Nadia Berthouze and Youngjun Cho},
     title={Self-adversarial Multi-scale Contrastive Learning for Semantic Segmentation of Thermal Facial Images},
@@ -50,3 +51,4 @@ There are two outcomes that code generates in the specified *outdir* path:
     year={2022},
     url={https://bmvc2022.mpi-inf.mpg.de/0864.pdf}
 }
+```
