@@ -37,17 +37,16 @@ There are two outcomes that code generates in the specified *outdir* path:
     2 - mouth
     3 - eyes
     4 - eyebrows
-    5 - nose
-2. **JPG files** (in a sub-folder with name "vis") showing overlaid visualization as the image below. These cannot be used for further processing.
+    5 - nose.
+   
+3. **JPG files** (in a sub-folder with name "vis") showing overlaid visualization as the image below. These cannot be used for further processing.
 
 #### **Citation**
-```json
 @inproceedings{Joshi_2022_BMVC,
-author = {Jitesh N Joshi and Nadia Berthouze and Youngjun Cho},
-title = {Self-adversarial Multi-scale Contrastive Learning for Semantic Segmentation of Thermal Facial Images},
-booktitle = {33rd British Machine Vision Conference 2022, {BMVC} 2022, London, UK, November 21-24, 2022},
-publisher = {{BMVA} Press},
-year = {2022},
-url = {https://bmvc2022.mpi-inf.mpg.de/0864.pdf}
+    author={Jitesh N Joshi and Nadia Berthouze and Youngjun Cho},
+    title={Self-adversarial Multi-scale Contrastive Learning for Semantic Segmentation of Thermal Facial Images},
+    booktitle={33rd British Machine Vision Conference 2022, {BMVC} 2022, London, UK, November 21-24, 2022},
+    publisher={{BMVA} Press},
+    year={2022},
+    url={https://bmvc2022.mpi-inf.mpg.de/0864.pdf}
 }
-```
